@@ -1,0 +1,170 @@
+<mat-toolbar color="primary" class="toolbar">
+  <img width="120px" height="120px" [style.borderRadius]="'50%'" src="assets/carematelogo.svg" alt="Logo">
+</mat-toolbar>
+
+<mat-card class="modern-card">
+  <mat-stepper #stepper>
+    <mat-step>
+      <ng-template matStepLabel>Welcome</ng-template>
+      <div class="step-container">
+        <div class="text-side">
+          <h1>Symptom Checker</h1>
+          <p class="description">
+            Answer a few questions about your symptoms. All your information is safe and confidential. Your results will
+            include:
+          </p>
+          <ul class="features-list">
+            <li>Possible causes of symptoms</li>
+            <li>Recommendations for next steps</li>
+            <li>Recommendations for next steps</li>
+            <li>Recommendations for next steps</li>
+            <li>Recommendations for next steps</li>
+          </ul>
+
+          <!-- <div class="info-section">
+              <h2>Why use this tool?</h2>
+              <div class="info-list">
+                <div class="info-item">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Developed and reviewed by medical experts</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Tested with real-world patient cases</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Certified as a Class I medical device</span>
+                </div>
+              </div>
+            </div> -->
+        </div>
+
+        <div class="visual-side">
+          <img src="assets/medImage1.svg" alt="Medical consultation illustration">
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button mat-raised-button color="primary" matStepperNext>Next</button>
+      </div>
+    </mat-step>
+
+    <mat-step [stepControl]="patientForm">
+      <ng-template matStepLabel>Patient Information</ng-template>
+      <form [formGroup]="patientForm">
+        <div class="gender-container" *ngIf="!selectedGender">
+          <p class="gender-header">What is this person's sex?</p>
+          <div class="gender-options">
+            <div class="gender-block" [class.selected]="patientForm.get('gender')?.value === 'female'"
+              (click)="selectGender('female')">
+              <mat-icon>female</mat-icon>
+              <span>Female</span>
+            </div>
+            <div class="gender-block" [class.selected]="patientForm.get('gender')?.value === 'male'"
+              (click)="selectGender('male')">
+              <mat-icon>male</mat-icon>
+              <span>Male</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="age-container" *ngIf="selectedGender">
+          <h2>What is your date of birth?</h2>
+          <mat-form-field appearance="outline">
+            <mat-label>Please enter your age</mat-label>
+            <input matInput formControlName="age">
+            <div matSuffix>years &nbsp;</div>
+          </mat-form-field>
+
+          <div *ngIf="patientForm.get('age')?.value" class="age-display">
+            <mat-icon color="primary">check_circle</mat-icon>
+            <span>Age: {{ calculateAge() }}</span>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!patientForm.valid">
+            Next
+          </button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step>
+      <ng-template matStepLabel>More Details</ng-template>
+      <mat-card>
+        <mat-label>
+          Select one answer for each statement
+        </mat-label>
+        <mat-divider>
+        </mat-divider>
+        <div class="survey">
+          <div class="question" *ngFor="let question of questions; let i = index">
+            <div>
+              <mat-label>{{question.question}}</mat-label>
+            </div>
+            <mat-radio-group>
+                <mat-radio-button id="{{i}}" value="1">Yes</mat-radio-button>
+                <mat-radio-button id="{{i}}" value="2">No</mat-radio-button>
+                <mat-radio-button id="{{i}}" value="3">Maybe, I'm not sure!</mat-radio-button>
+            </mat-radio-group>
+          </div>
+          </div>
+      </mat-card>
+      <div class="action-buttons">
+        <button mat-raised-button matStepperNext color="primary">Next</button>
+      </div>
+    </mat-step>
+    <mat-step>
+      <form [formGroup]="symptomsForm">
+      <ng-template matStepLabel>Final Step</ng-template>
+      <div class="final-step-container">
+        <div class="symptoms-side">
+          <h2>Enter Your Symptoms</h2>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Search symptoms (e.g., headache)</mat-label>
+            <input type="text"
+                   matInput
+                   formControlName="symptoms"
+                   [matAutocomplete]="auto"
+                   placeholder="Type to search symptoms">
+            <mat-spinner *ngIf="isLoading" matSuffix diameter="30"></mat-spinner>
+            <mat-icon matSuffix *ngIf="!isLoading">search</mat-icon>
+            
+            <mat-autocomplete #auto="matAutocomplete"
+                             [displayWith]="displayFn"
+                             (optionSelected)="selectSymptom($event)">
+              <mat-option *ngFor="let symptom of filteredSymptoms | async" [value]="symptom">
+                {{symptom.label}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+          <div class="selected-symptoms" *ngIf="selectedSymptoms.length > 0">
+            <h3>Selected Symptoms:</h3>
+            <mat-chip-listbox>
+              <mat-chip *ngFor="let symptom of selectedSymptoms" (removed)="removeSymptom(symptom)">
+                {{symptom.label}}
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip>
+            </mat-chip-listbox>
+          </div>
+        </div>
+        
+        <div class="body-diagram-side">
+          <img src="assets/body-diagram.svg" alt="Body diagram" class="body-diagram">
+        </div>
+      </div>
+    
+      <div class="action-buttons">
+        <button mat-button matStepperPrevious>Back</button>
+        <button mat-raised-button color="primary" (click)="submitSymptoms()">Submit</button>
+      </div>
+      </form>
+    </mat-step>
+
+    <!-- Additional steps as before -->
+  </mat-stepper>
+</mat-card>
