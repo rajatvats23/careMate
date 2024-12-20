@@ -1,7 +1,6 @@
 <mat-toolbar color="primary" class="toolbar">
   <img width="120px" height="120px" [style.borderRadius]="'50%'" src="assets/carematelogo.svg" alt="Logo">
 </mat-toolbar>
-
 <mat-card class="modern-card">
   <mat-stepper #stepper>
     <mat-step>
@@ -14,13 +13,11 @@
             include:
           </p>
           <ul class="features-list">
-            <li>Detailed analysis of possible causes based on your symptoms</li>
-            <li>Personalized recommendations for immediate self-care</li>
-            <li>Guidance on when to seek professional medical help</li>
-            <li>Access to relevant health resources and educational materials</li>
-            <li>Option to save and track your symptom history</li>
+            <li>Possible causes of symptoms</li>
+            <li>Recommendations for next steps</li>
+            <li>It doesn't provide medical diagnosis, and should not replace the judgment of a licensed healthcare practitioner</li>
+            <li>It provides information to help guide your decision making based on readily available information about symptoms</li>
           </ul>
-
           <!-- <div class="info-section">
               <h2>Why use this tool?</h2>
               <div class="info-list">
@@ -39,17 +36,14 @@
               </div>
             </div> -->
         </div>
-
         <div class="visual-side">
           <img src="assets/medImage1.svg" alt="Medical consultation illustration">
         </div>
       </div>
-
       <div class="action-buttons">
         <button mat-raised-button color="primary" matStepperNext>Next</button>
       </div>
     </mat-step>
-
     <mat-step [stepControl]="patientForm">
       <ng-template matStepLabel>Patient Information</ng-template>
       <form [formGroup]="patientForm">
@@ -68,21 +62,18 @@
             </div>
           </div>
         </div>
-
         <div class="age-container" *ngIf="selectedGender">
-          <h2>What is your date of birth?</h2>
+          <h2>How old are you?</h2>
           <mat-form-field appearance="outline">
             <mat-label>Please enter your age</mat-label>
             <input matInput formControlName="age">
             <div matSuffix>years &nbsp;</div>
           </mat-form-field>
-
-          <div *ngIf="patientForm.get('age')?.value" class="age-display">
+          <!-- <div *ngIf="patientForm.get('age')?.value" class="age-display">
             <mat-icon color="primary">check_circle</mat-icon>
             <span>Age: {{ calculateAge() }}</span>
-          </div>
+          </div> -->
         </div>
-
         <div class="action-buttons">
           <button mat-button matStepperPrevious>Back</button>
           <button mat-raised-button color="primary" matStepperNext [disabled]="!patientForm.valid">
@@ -105,12 +96,12 @@
               <mat-label>{{question.question}}</mat-label>
             </div>
             <mat-radio-group>
-                <mat-radio-button id="{{i}}" value="1">Yes</mat-radio-button>
-                <mat-radio-button id="{{i}}" value="2">No</mat-radio-button>
-                <mat-radio-button id="{{i}}" value="3">Maybe, I'm not sure!</mat-radio-button>
+              <mat-radio-button id="{{i}}" value="1">Yes</mat-radio-button>
+              <mat-radio-button id="{{i}}" value="2">No</mat-radio-button>
+              <mat-radio-button id="{{i}}" value="3">Maybe, I'm not sure!</mat-radio-button>
             </mat-radio-group>
           </div>
-          </div>
+        </div>
       </mat-card>
       <div class="action-buttons">
         <button mat-raised-button matStepperNext color="primary">Next</button>
@@ -118,56 +109,79 @@
     </mat-step>
     <mat-step>
       <form [formGroup]="symptomsForm">
-      <ng-template matStepLabel>Final Step</ng-template>
-      <div class="final-step-container">
-        <div class="symptoms-side">
-          <h2>Enter Your Symptoms</h2>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Search symptoms (e.g., headache)</mat-label>
-            <input type="text"
-                   [hidden]="this.selectedSymptoms.length > 0"
-                   matInput
-                   formControlName="symptoms"
-                   [matAutocomplete]="auto"
-                   [placeholder]="isListening ? 'Listening....' : 'Type to search symptoms' ">
-            <mat-spinner *ngIf="isLoading" matSuffix diameter="30"></mat-spinner>
-              <mat-icon matSuffix 
-              (click)="toggleSpeechRecognition()" 
-              [color]="isListening ? 'accent' : ''" *ngIf="!isLoading">{{isListening ? 'mic' : 'mic_none'}}</mat-icon>
-            <mat-icon matSuffix *ngIf="!isLoading && !isListening">search</mat-icon>
-            <mat-autocomplete #auto="matAutocomplete"
-                             [displayWith]="displayFn"
-                             (optionSelected)="selectSymptom($event)">
-              <mat-option *ngFor="let symptom of filteredSymptoms | async" [value]="symptom">
-                {{symptom.label}}
-              </mat-option>
-            </mat-autocomplete>
-          </mat-form-field>
-          <div class="selected-symptoms" *ngIf="selectedSymptoms.length > 0">
-            <h3>Selected Symptoms:</h3>
-            <mat-chip-listbox>
-              <mat-chip *ngFor="let symptom of selectedSymptoms" (removed)="removeSymptom(symptom)">
-                {{symptom.label}}
-                <button matChipRemove>
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              </mat-chip>
-            </mat-chip-listbox>
+        <ng-template matStepLabel>Interview</ng-template>
+        <div class="final-step-container" *ngIf="step == 1">
+          <div class="symptoms-side">
+            <h2>Enter Your Symptoms</h2>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search symptoms (e.g., headache)</mat-label>
+              <input type="text"
+                     [hidden]="this.selectedSymptoms.length > 0"
+                     matInput
+                     formControlName="symptoms"
+                     [matAutocomplete]="auto"
+                     [placeholder]="isListening ? 'Listening....' : 'Type to search symptoms' ">
+              <mat-spinner *ngIf="isLoading" matSuffix diameter="30"></mat-spinner>
+                <mat-icon matSuffix
+                (click)="toggleSpeechRecognition()"
+                [color]="isListening ? 'accent' : ''" *ngIf="!isLoading">{{isListening ? 'mic' : 'mic_none'}}</mat-icon>
+              <mat-icon matSuffix *ngIf="!isLoading && !isListening">search</mat-icon>
+              <mat-autocomplete #auto="matAutocomplete"
+                               [displayWith]="displayFn"
+                               (optionSelected)="selectSymptom($event)">
+                <mat-option *ngFor="let symptom of filteredSymptoms | async" [value]="symptom">
+                  {{symptom.label}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+            <div class="selected-symptoms" *ngIf="selectedSymptoms.length > 0">
+              <h3>Selected Symptoms:</h3>
+              <mat-chip-listbox>
+                <mat-chip *ngFor="let symptom of selectedSymptoms" (removed)="removeSymptom(symptom)">
+                  {{symptom.label}}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-listbox>
+            </div>
+          </div>
+          <div class="body-diagram-side">
+            <app-human-model></app-human-model>
           </div>
         </div>
-        
-        <div class="body-diagram-side">
-          <app-human-model></app-human-model>
+        <div class="action-buttons" *ngIf=  "step == 1">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" (click)="getQuestions()">Next</button>
         </div>
-      </div>
-    
-      <div class="action-buttons">
-        <button mat-button matStepperPrevious>Back</button>
-        <button mat-raised-button color="primary" (click)="submitSymptoms()">Submit</button>
-      </div>
+        <div class="symptoms-side" *ngIf="step == 2">
+          <h2>{{diagnosis?.question?.text}}</h2>
+          <!-- <mat-form-field appearance="outline" class="full-width"> -->
+          <mat-label class="selectOneAnswer">Select one answer</mat-label>
+          <ng-container *ngIf="diagnosis.question?.type == 'group_single'">
+            <mat-radio-group class="radio-group">
+              <mat-radio-button *ngFor="let option of diagnosis.question.items" (change)="selectAnswer(option)"
+                [value]="option.id">{{option.name}}</mat-radio-button>
+            </mat-radio-group>
+          </ng-container>
+          <ng-container *ngIf="diagnosis.question?.type == 'single'">
+          <div class="flex-disp">
+            <div class="list-option text-center" (click) = "selectSingleAnswer(list,diagnosis.question.items[0])" *ngFor = "let list of diagnosis.question.items[0].choices">{{list.label}}</div>
+          </div>
+          </ng-container>
+          <ng-container *ngIf="diagnosis.question?.type == 'group_multiple'">
+            <div *ngFor = "let check of diagnosis.question.items">
+            <mat-checkbox (change)="addMultipleCheckboxSymptoms(check)" class="example-margin">{{check.name}}</mat-checkbox>
+          </div>
+            </ng-container>
+          <div class="action-buttons" >
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" *ngIf="type != 'group_multiple'" (click)="getQuestions()">Next</button>
+            <button mat-raised-button color="primary" *ngIf="type === 'group_multiple'" (click)="submit()">Submit</button>
+          </div>
+        </div>
       </form>
     </mat-step>
-
     <!-- Additional steps as before -->
   </mat-stepper>
 </mat-card>

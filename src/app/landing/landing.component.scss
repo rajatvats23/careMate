@@ -367,3 +367,40 @@
       transform: scale(1);
     }
   }
+
+  .flex-disp {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .list-option {
+    width: 200px;
+    height: 120px;
+    border: 1px solid lightgrey;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    &:hover {
+      background-color: #3F51B5;
+      color: white !important;
+      font-weight: 700;
+    }
+  
+  }
+
+  .selectOneAnswer {
+    margin-bottom: 20px;
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: left;
+  }

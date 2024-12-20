@@ -21,12 +21,15 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import { EmergencyComponent } from './emergency.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ThreeSceneComponent,
-    LandingComponent
+    LandingComponent,
+    EmergencyComponent
   ],
   imports: [
     BrowserModule,
@@ -44,6 +47,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
     MatIconModule,
     FormsModule,
     MatStepperModule,
+    MatCheckboxModule,
     MatAutocompleteModule,
     AppRoutingModule,
     HttpClientModule,

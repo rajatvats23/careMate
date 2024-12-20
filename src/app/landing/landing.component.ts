@@ -3,6 +3,7 @@ import { Component, OnInit, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../environment/environment';
 import { debounceTime, distinctUntilChanged, map, Observable, of } from 'rxjs';
+import { Router } from '@angular/router';
 declare const webkitSpeechRecognition: any;
 
 interface QuestionInfo {
@@ -28,7 +29,10 @@ export class LandingComponent implements OnInit {
   symptomsForm: FormGroup;
   filteredSymptoms: Observable<Suggestions[]> = of([]);
   recognition: any;
-  isListening = false
+  isListening = false;
+  diagnosis!: any;
+  step: number = 1;
+  type: string = '';
 
 
   questions: QuestionInfo[] = [
@@ -41,13 +45,13 @@ export class LandingComponent implements OnInit {
     { question: 'I have hypertension', hasInfo: true }
   ];
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private ngZone: NgZone) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private ngZone: NgZone, private router: Router) {
     this.patientForm = this.fb.group({
       gender: ['', Validators.required],
       age: ['30', Validators.required],
     });
     this.symptomsForm = this.fb.group({
-      symptoms: ['', Validators.required]
+      symptoms: ['']
     })
     this.symptomsForm.get('symptoms')?.valueChanges.pipe(
       debounceTime(500),
@@ -111,7 +115,7 @@ export class LandingComponent implements OnInit {
   submitSymptoms() {
     if (this.selectedSymptoms.length > 0) {
       // Handle form submission
-      this.postSymptoms();
+      this.getQuestions();
     }
   }
 
@@ -174,14 +178,67 @@ export class LandingComponent implements OnInit {
 
   selectSymptom(event: any) {
     console.log(event);
-    const selectedSymptom = event.option.value;
+    const selectedSymptom = event.option?.value;
     if (!this.selectedSymptoms.includes(selectedSymptom)) {
       this.selectedSymptoms.push(selectedSymptom);
     }
     // this.symptomsForm.get('symptoms')?.setValue('');
   }
 
-  postSymptoms() {
+  addMultipleCheckboxSymptoms(event: any) {
+    this.selectedSymptoms.push({id: event.id, choice_id: 'present', source: 'suggest'});
+  }
+
+  getQuestions() {
+    const httpHeaders = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'App-Id': environment.appId,
+      'App-Key': environment.appkey,
+      'Interview-Id': environment.interviewId
+    });
+    let tempObj: any = {
+      age: {
+        value: this.patientForm.get('age')!.value,
+      },
+      sex: this.patientForm.get('gender')!.value,
+      
+    }
+    if (this.type === 'group_multiple' ) {
+      tempObj['evidence'] = this.selectedSymptoms;
+    } else {
+      tempObj['evidence'] = this.selectedSymptoms.map((symptom: {id: string, label: string}) => {
+        return {id: symptom.id, choice_id: 'present', source: 'suggest'}
+      })
+    }
+    console.log(tempObj);
+
+    this.http.post(environment.url + 'diagnosis', tempObj, {headers: httpHeaders}).subscribe((res: any) => {
+    this.diagnosis = res;
+    this.type = res.question.type;
+    this.selectedSymptoms = [];
+    this.step = 2;
+    })
+  }
+
+  selectAnswer(option: any){
+    console.log('optionoption',option);
+    const selectedSymptom = option
+    if (!this.selectedSymptoms.includes(selectedSymptom)) {
+      this.selectedSymptoms.push(selectedSymptom);
+    }
+
+  }
+  selectSingleAnswer(option: any,item: any){
+    console.log('optionoption',option,item);
+    const selectedSymptom = {option:option, id:item.id}
+    console.log('selectedSymptomselectedSymptom',selectedSymptom);
+    if (!this.selectedSymptoms.includes(selectedSymptom)) {
+      this.selectedSymptoms.push(selectedSymptom);
+    }
+    this.diagnose(selectedSymptom);
+  }
+
+  diagnose(option: any) {
     const httpHeaders = new HttpHeaders({
       'Content-Type': 'application/json',
       'App-Id': environment.appId,
@@ -193,14 +250,17 @@ export class LandingComponent implements OnInit {
         value: this.patientForm.get('age')!.value,
       },
       sex: this.patientForm.get('gender')!.value,
-      evidence: this.selectedSymptoms.map((symptom: {id: string, label: string}) => {
-        return {id: symptom.id, choice_id: 'present'}
-      })
+      evidence: [{id: option.id, choice_id: option.option.id, source: 'suggest'}]
     }
-    console.log(tempObj);
-
-    this.http.post(environment.url + 'diagnosis', tempObj, {headers: httpHeaders}).subscribe((res) => {
-      console.log('symptoms posted', res);
+    this.http.post(environment.url + 'diagnosis', tempObj, {headers: httpHeaders}).subscribe((res: any) => {
+      this.diagnosis = res;
+      if (res.question.type === 'group_multiple') {
+        this.type = 'group_multiple'
+      }
     })
+  }
+
+  submit() {
+    this.router.navigateByUrl('final-report');
   }
 }
