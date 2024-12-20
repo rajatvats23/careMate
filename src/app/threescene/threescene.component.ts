@@ -88,7 +88,7 @@ export class ThreeSceneComponent implements OnInit {
   private loadModel() {
     // Your existing model loading code remains the same
     const loader = new GLTFLoader();
-    loader.load('./assets/HumanBase1122.glb', (gltf) => {
+    loader.load('./assets/untitleddd.glb', (gltf) => {
       this.model = gltf.scene;
       this.scene.add(this.model);
       
