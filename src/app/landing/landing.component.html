@@ -125,6 +125,7 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Search symptoms (e.g., headache)</mat-label>
             <input type="text"
+            [hidden]="this.selectedSymptoms.length > 0"
                    matInput
                    formControlName="symptoms"
                    [matAutocomplete]="auto"
@@ -154,7 +155,7 @@
         </div>
         
         <div class="body-diagram-side">
-          <img src="assets/body-diagram.svg" alt="Body diagram" class="body-diagram">
+          <app-human-model></app-human-model>
         </div>
       </div>
     

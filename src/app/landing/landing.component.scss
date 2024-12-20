@@ -293,14 +293,20 @@
     width: 100%;
   }
   
+  // .body-diagram-side {
+  //   flex: 1;
+  //   display: flex;
+  //   justify-content: center;
+  //   align-items: center;
+  //   background-color: #f5f7ff;
+  //   border-radius: 8px;
+  //   padding: 1rem;
+  // }
+
   .body-diagram-side {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f5f7ff;
-    border-radius: 8px;
-    padding: 1rem;
+    width: 500px; /* or whatever width you want */
+    height: 600px; /* or whatever height you want */
+    position: relative;
   }
   
   .body-diagram {
@@ -333,3 +339,6 @@
       margin-bottom: 1rem;
     }
   }
+
+
+  

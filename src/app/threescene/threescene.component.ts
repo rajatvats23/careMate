@@ -5,16 +5,22 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 @Component({
   selector: 'app-human-model',
-  template: `<canvas #rendererCanvas></canvas>`,
-  styles: [
-    `canvas {
+  template: `<div class="renderer-container">
+    <canvas #rendererCanvas></canvas>
+  </div>`,
+  styles: [`
+    .renderer-container {
       width: 100%;
       height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }`
-  ]
+      position: relative;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+  `]
 })
 export class ThreeSceneComponent implements OnInit {
   @ViewChild('rendererCanvas', { static: true })
@@ -37,20 +43,28 @@ export class ThreeSceneComponent implements OnInit {
   private initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xf0f0f0);
+    
+    // Get the container dimensions
+    const container = this.rendererCanvas.nativeElement.parentElement;
+    const containerWidth = container?.clientWidth || window.innerWidth;
+    const containerHeight = container?.clientHeight || window.innerHeight;
+
     this.camera = new THREE.PerspectiveCamera(
       50,
-      window.innerWidth / window.innerHeight,
+      containerWidth / containerHeight,
       0.1,
       1000
     );
     this.camera.position.set(0, 1.9, 3);
+    
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.rendererCanvas.nativeElement,
       antialias: true
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(containerWidth, containerHeight);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.shadowMap.enabled = true;
-    // this.renderer.debug = true; // Enable Three.js debugger
+
     this.controls = new OrbitControls(
       this.camera,
       this.renderer.domElement
@@ -63,39 +77,33 @@ export class ThreeSceneComponent implements OnInit {
   }
 
   private setupLighting() {
+    // Your existing lighting setup
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     this.scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(
-      0xffffff,
-      0.8
-    );
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(5, 5, 5);
     this.scene.add(directionalLight);
   }
 
   private loadModel() {
+    // Your existing model loading code remains the same
     const loader = new GLTFLoader();
     loader.load('./assets/HumanBase1122.glb', (gltf) => {
       this.model = gltf.scene;
       this.scene.add(this.model);
-      console.log(this.model);
-  
+      
       this.model.traverse((object) => {
         if ((object as THREE.Mesh).isMesh) {
           const mesh = object as THREE.Mesh;
-          
           if (mesh.material) {
-            // Check if the material is an array
             if (Array.isArray(mesh.material)) {
               mesh.material.forEach((material) => {
-                // Check for MeshStandardMaterial or MeshBasicMaterial
                 if (material instanceof THREE.MeshStandardMaterial || 
                     material instanceof THREE.MeshBasicMaterial) {
                   material.color.set(Math.random() * 0xffffff);
                 }
               });
             } else {
-              // Check for MeshStandardMaterial or MeshBasicMaterial for single material
               if (mesh.material instanceof THREE.MeshStandardMaterial || 
                   mesh.material instanceof THREE.MeshBasicMaterial) {
                 mesh.material.color.set(Math.random() * 0xffffff);
@@ -104,7 +112,7 @@ export class ThreeSceneComponent implements OnInit {
           }
         }
       });
-  
+      
       this.animate();
     });
   }
@@ -117,68 +125,53 @@ export class ThreeSceneComponent implements OnInit {
 
   @HostListener('window:resize')
   onResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    const container = this.rendererCanvas.nativeElement.parentElement;
+    if (container) {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(width, height);
+    }
   }
 
-  // @HostListener('click', ['$event'])
-  // onClick(event: MouseEvent) {
-  //   this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  //   this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  //   this.raycaster.setFromCamera(this.mouse, this.camera);
-  //   const intersects = this.raycaster.intersectObjects(
-  //     this.model.children,
-  //     true
-  //   );
-  //   if (intersects.length > 0) {
-  //     const clickedMesh = intersects[0].object as THREE.Mesh;
-  //     console.log(`Clicked on mesh: ${clickedMesh.name}`);
-
-  //     // Access custom properties
-  //     if (clickedMesh.userData['customProperty']) {
-  //       console.log('Custom property found!');
-  //     }
-  //   }
-  // }
-
+  // Your existing click handler remains the same
   @HostListener('click', ['$event'])
-onClick(event: MouseEvent) {
-  this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  this.raycaster.setFromCamera(this.mouse, this.camera);
-  const intersects = this.raycaster.intersectObjects(
-    this.model.children,
-    true
-  );
-  if (intersects.length > 0) {
-    const clickedMesh = intersects[0].object as THREE.Mesh;
-    console.log(`Clicked on mesh: ${clickedMesh.name}`);
+  onClick(event: MouseEvent) {
+    // Calculate mouse position relative to the container
+    const container = this.rendererCanvas.nativeElement.parentElement;
+    const rect = container?.getBoundingClientRect();
+    if (rect) {
+      this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      const intersects = this.raycaster.intersectObjects(
+        this.model.children,
+        true
+      );
+      
+      if (intersects.length > 0) {
+        const clickedMesh = intersects[0].object as THREE.Mesh;
+        console.log(`Clicked on mesh: ${clickedMesh.name}`);
 
-    // Access custom properties
-    if (clickedMesh.userData['customProperty']) {
-      console.log('Custom property found!');
-    }
-
-    // Get the color of the clicked mesh
-    if (clickedMesh.material) {
-      // Check if the material is an array
-      if (Array.isArray(clickedMesh.material)) {
-        clickedMesh.material.forEach((material) => {
-          if (material instanceof THREE.MeshStandardMaterial || 
-              material instanceof THREE.MeshBasicMaterial) {
-            console.log(`Color of ${clickedMesh.name}:`, material.color.getHexString());
+        if (clickedMesh.material) {
+          if (Array.isArray(clickedMesh.material)) {
+            clickedMesh.material.forEach((material) => {
+              if (material instanceof THREE.MeshStandardMaterial || 
+                  material instanceof THREE.MeshBasicMaterial) {
+                console.log(`Color of ${clickedMesh.name}:`, material.color.getHexString());
+              }
+            });
+          } else {
+            if (clickedMesh.material instanceof THREE.MeshStandardMaterial || 
+                clickedMesh.material instanceof THREE.MeshBasicMaterial) {
+              console.log(`Color of ${clickedMesh.name}:`, clickedMesh.material.color.getHexString());
+            }
           }
-        });
-      } else {
-        // For single material
-        if (clickedMesh.material instanceof THREE.MeshStandardMaterial || 
-            clickedMesh.material instanceof THREE.MeshBasicMaterial) {
-          console.log(`Color of ${clickedMesh.name}:`, clickedMesh.material.color.getHexString());
         }
       }
     }
   }
-
-}
 }
