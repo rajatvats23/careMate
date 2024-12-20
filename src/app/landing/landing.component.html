@@ -125,14 +125,16 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Search symptoms (e.g., headache)</mat-label>
             <input type="text"
-            [hidden]="this.selectedSymptoms.length > 0"
+                   [hidden]="this.selectedSymptoms.length > 0"
                    matInput
                    formControlName="symptoms"
                    [matAutocomplete]="auto"
-                   placeholder="Type to search symptoms">
+                   [placeholder]="isListening ? 'Listening....' : 'Type to search symptoms' ">
             <mat-spinner *ngIf="isLoading" matSuffix diameter="30"></mat-spinner>
-            <mat-icon matSuffix *ngIf="!isLoading">search</mat-icon>
-            
+              <mat-icon matSuffix 
+              (click)="toggleSpeechRecognition()" 
+              [color]="isListening ? 'accent' : ''" *ngIf="!isLoading">{{isListening ? 'mic' : 'mic_none'}}</mat-icon>
+            <mat-icon matSuffix *ngIf="!isLoading && !isListening">search</mat-icon>
             <mat-autocomplete #auto="matAutocomplete"
                              [displayWith]="displayFn"
                              (optionSelected)="selectSymptom($event)">

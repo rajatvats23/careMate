@@ -342,3 +342,28 @@
 
 
   
+
+  .mat-form-field {
+    position: relative;
+  }
+  
+  button[matSuffix] {
+    margin-left: 8px;
+  }
+  
+  .listening {
+    color: #f44336;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }

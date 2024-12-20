@@ -1,8 +1,9 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../environment/environment';
 import { debounceTime, distinctUntilChanged, map, Observable, of } from 'rxjs';
+declare const webkitSpeechRecognition: any;
 
 interface QuestionInfo {
   question: string;
@@ -26,6 +27,8 @@ export class LandingComponent implements OnInit {
   isLoading: boolean = false;
   symptomsForm: FormGroup;
   filteredSymptoms: Observable<Suggestions[]> = of([]);
+  recognition: any;
+  isListening = false
 
 
   questions: QuestionInfo[] = [
@@ -38,7 +41,7 @@ export class LandingComponent implements OnInit {
     { question: 'I have hypertension', hasInfo: true }
   ];
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, private http: HttpClient, private ngZone: NgZone) {
     this.patientForm = this.fb.group({
       gender: ['', Validators.required],
       age: ['30', Validators.required],
@@ -54,10 +57,51 @@ export class LandingComponent implements OnInit {
         this.getSymptoms(value);
       }
     });
+    this.initializeSpeechRecognition();
   }
+
 
   ngOnInit() {
 
+  }
+
+  initializeSpeechRecognition() {
+    this.recognition = new webkitSpeechRecognition();
+    this.recognition.continuous = false;
+    this.recognition.interimResults = false;
+    this.recognition.lang = 'en-US';
+
+    this.recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      this.ngZone.run(() => {
+        const symptomsControl = this.symptomsForm.get('symptoms');
+        if (symptomsControl) {
+          symptomsControl.setValue(transcript, { emitEvent: true });
+        }
+        this.isListening = false;
+      });
+    };
+
+    this.recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      this.isListening = false;
+    };
+
+    this.recognition.onend = () => {
+      this.ngZone.run(() => {
+        this.isListening = false;
+      });
+    };
+  }
+
+  toggleSpeechRecognition() {
+    if (this.isListening) {
+      this.recognition.stop();
+      this.isListening = false;
+    } else {
+      this.recognition.start();
+      this.isListening = true;
+    }
   }
 
   removeSymptom(symptom: string) {
